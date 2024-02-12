@@ -1,0 +1,1331 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: ComboBox_MRC выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #ComboBox_MRC
+    PROPERTIES
+      Name                #ComboBox_MRC
+      Extends             #SysFormEnumComboBox
+      Origin              #{75BB375A-386F-4334-BA6D-95FE2B788CC5}
+      LegacyId            #57019
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #allowedEnumValue2Show
+        #private boolean allowedEnumValue2Show(int    _enumValue)
+        #{
+        #    boolean     ret;
+        #    ;
+        #
+        #    if (!allowedEnumValuesSet || allowedEnumValuesSet.in(_enumValue))
+        #    {
+        #        if (!conFind(forbiddenValuesCon, _enumValue))
+        #        {
+        #            ret = true;
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #// JEV007114 "ГИИС ДМДК. Мониторинг документов с УИН для интеграции с ГИИС ДМДК", PKoz 16.08.2022
+        #public class ComboBox_MRC extends SysFormEnumComboBox
+        #{
+        #    container   usedEnumValuesCon;
+        #    container   forbiddenValuesCon;
+        #    str         helpText;
+        #
+        #    Map         enumLabel2ComboBoxItemMap;
+        #}
+      ENDSOURCE
+      SOURCE #init
+        #/// <summary>
+        #///    Builds a combo box based on which values of the enumeration are enabled.
+        #/// </summary>
+        #/// <remarks>
+        #///    The combo box is not assigned an enumeration and is built at runtime.
+        #/// </remarks>
+        #protected void init()
+        #{
+        #    #define.List(1)
+        #
+        #    FormComboBoxControl formComboBoxControl;
+        #
+        #    int                 comboBoxItemNumber;
+        #    int                 allowedEnumValue;
+        #    str                 allowedEnumName;
+        #    int                 enumValCnt;
+        #    int                 enumValIdx;
+        #    container           usedEnumValuesConExt;
+        #    int                 additionalCounter = -1;
+        #    int                 i;
+        #    ;
+        #
+        #    sysDictEnum = new SysDictEnum(enumId);
+        #
+        #    formComboBoxControl = formRun.form().design().control(comboBoxControlId);
+        #    formComboBoxControl.enumType(0); // don't assign any enum type
+        #
+        #    if (label)
+        #    {
+        #        formComboBoxControl.label(label);
+        #    }
+        #    else if (formComboBoxControl.label() == '')
+        #    {
+        #        formComboBoxControl.label(sysDictEnum.label());
+        #    }
+        #
+        #    if (helpText)
+        #    {
+        #        formComboBoxControl.helpText(helpText);
+        #    }
+        #    else if (formComboBoxControl.helpText() == '')
+        #    {
+        #        formComboBoxControl.helpText(sysDictEnum.help());
+        #    }
+        #
+        #    formComboBoxControl.comboType(#List);
+        #
+        #    enumValue2ComboBoxItemMap = new Map(Types::Integer, Types::Integer);
+        #    enumLabel2ComboBoxItemMap = new Map(Types::String,  Types::Integer);
+        #
+        #    comboBoxItemNumber = 1;
+        #    for (i = 1; i <= conLen(usedEnumValuesCon); i++)
+        #    {
+        #        if (typeOf(conPeek(usedEnumValuesCon, i)) == Types::Integer &&
+        #            conPeek(usedEnumValuesCon, i) == -1)
+        #        {   // признак что нужно положить все значения енума за вычетом запрещенных
+        #            enumValCnt = sysDictEnum.values();
+        #            for (enumValIdx = 0; enumValIdx <= enumValCnt - 1; enumValIdx++)
+        #            {
+        #                allowedEnumValue  = sysDictEnum.index2Value(enumValIdx);
+        #                allowedEnumName   = sysDictEnum.index2Name(enumValIdx);
+        #                if (this.allowedEnumValue2Show(allowedEnumValue))
+        #                {
+        #                    enumValue2ComboBoxItemMap.insert(allowedEnumValue,  comboBoxItemNumber);
+        #                    enumLabel2ComboBoxItemMap.insert(allowedEnumName,   comboBoxItemNumber);
+        #                    usedEnumValuesConExt += allowedEnumName;
+        #                    comboBoxItemNumber++;
+        #                }
+        #            }
+        #        }
+        #        else if (typeOf(conPeek(usedEnumValuesCon, i)) == Types::String)
+        #        {   // наши дополнительные значения для енума
+        #            additionalCounter--;
+        #            allowedEnumValue  = additionalCounter;
+        #            allowedEnumName   = conPeek(usedEnumValuesCon, i);
+        #            // if (this.allowedEnumValue2Show(allowedEnumValue))
+        #            {
+        #                enumValue2ComboBoxItemMap.insert(allowedEnumValue,  comboBoxItemNumber);
+        #                enumLabel2ComboBoxItemMap.insert(allowedEnumName,   comboBoxItemNumber);
+        #                usedEnumValuesConExt += allowedEnumName;
+        #                comboBoxItemNumber++;
+        #            }
+        #        }
+        #        else
+        #        {   // ожидается что тут будет Types::Enum или Types::Integer т.е. желаемое к показу конкретное значение енума
+        #            allowedEnumValue  = conPeek(usedEnumValuesCon, i);
+        #            allowedEnumName = sysDictEnum.value2Name(conPeek(usedEnumValuesCon, i));
+        #            if (this.allowedEnumValue2Show(allowedEnumValue))
+        #            {
+        #                enumValue2ComboBoxItemMap.insert(allowedEnumValue,  comboBoxItemNumber);
+        #                enumLabel2ComboBoxItemMap.insert(allowedEnumName,   comboBoxItemNumber);
+        #                usedEnumValuesConExt += allowedEnumName;
+        #                comboBoxItemNumber++;
+        #            }
+        #        }
+        #    }
+        #
+        #    formComboBoxControl.items(conLen(usedEnumValuesConExt));
+        #
+        #    for (i = 1; i <= conLen(usedEnumValuesConExt); i++)
+        #    {
+        #        formComboBoxControl.item(i);
+        #        formComboBoxControl.text(conPeek(usedEnumValuesConExt, i)); // usedEnumValuesConExt - содежит только строки
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #protected void new()
+        #{
+        #    super();
+        #}
+      ENDSOURCE
+      SOURCE #parmForbiddenValuesCon
+        #public container parmForbiddenValuesCon(container _parm = forbiddenValuesCon)
+        #{
+        #    ;
+        #
+        #    forbiddenValuesCon = _parm;
+        #
+        #    return forbiddenValuesCon;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmHelpText
+        #public str parmHelpText(str _parm = helpText)
+        #{
+        #    ;
+        #
+        #    helpText = _parm;
+        #
+        #    return helpText;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #parmUsedEnumValuesCon
+        #public container parmUsedEnumValuesCon(container _parm = usedEnumValuesCon)
+        #{
+        #    ;
+        #
+        #    usedEnumValuesCon = _parm;
+        #
+        #    return usedEnumValuesCon;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #select
+        #/// <summary>
+        #///    Selects a combo box item that corresponds to the required value.
+        #/// </summary>
+        #/// <param name="_enumValue">
+        #///    The enumeration value to select in the combo box.
+        #/// </param>
+        #public void select(int _enumValue)
+        #{
+        #    super(_enumValue);
+        #}
+      ENDSOURCE
+      SOURCE #selection
+        #/// <summary>
+        #///    Converts the current selection to an enumeration value.
+        #/// </summary>
+        #/// <returns>
+        #///    The enumeration value corresponding to the current selection in the combo box.
+        #/// </returns>
+        #public int selection()
+        #{
+        #    return super();
+        #}
+      ENDSOURCE
+      SOURCE #selectionEnum
+        #/// <summary>
+        #///    Converts the current selection to an enumeration value. Метод сделан для удобства запоминания.
+        #/// </summary>
+        #/// <returns>
+        #///    The enumeration value corresponding to the current selection in the combo box.
+        #/// </returns>
+        #public int selectionEnum()
+        #{
+        #    return this.selection();
+        #}
+      ENDSOURCE
+      SOURCE #selectionStr
+        #/// <summary>
+        #///    Converts the current selection to an enumeration string value.
+        #/// </summary>
+        #/// <returns>
+        #///    The enumeration string value corresponding to the current selection in the combo box.
+        #/// </returns>
+        #public str selectionStr()
+        #{
+        #    FormComboBoxControl formComboBoxControl;
+        #    str                 ret;
+        #    ;
+        #
+        #    formComboBoxControl = formRun.control(comboBoxControlId);
+        #    ret = formComboBoxControl.valueStr();
+        #
+        #    // ret = formComboBoxControl.getEditText(); // так тоже работает
+        #    // // ret = formComboBoxControl.getText(formComboBoxControl.selection()); // и так работает, но сложнее запоминать
+        #    // ret = formComboBoxControl.text(); // а так нифига не работает - всегда возвращает последнее положенное значение
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #selectStr
+        #/// <summary>
+        #///    Selects a combo box item that corresponds to the required value.
+        #/// </summary>
+        #/// <param name="_text">
+        #///    The enumeration string value to select in the combo box.
+        #/// </param>
+        #public void selectStr(str _text)
+        #{
+        #    FormComboBoxControl formComboBoxControl;
+        #    ;
+        #
+        #    if (!enumLabel2ComboBoxItemMap.exists(_text))
+        #        throw error(Error::wrongUseOfFunction(funcName()));
+        #
+        #    formComboBoxControl = formRun.control(comboBoxControlId);
+        #    formComboBoxControl.selection(enumLabel2ComboBoxItemMap.lookup(_text) - 1);
+        #}
+      ENDSOURCE
+      SOURCE #valueStr
+        #/// <summary>
+        #///    Converts the current selection to an enumeration string value. Метод сделан для удобства запоминания.
+        #/// </summary>
+        #/// <returns>
+        #///    The enumeration string value corresponding to the current selection in the combo box.
+        #/// </returns>
+        #public str valueStr()
+        #{
+        #    return this.selectionStr();
+        #}
+      ENDSOURCE
+      SOURCE #construct
+        #public static ComboBox_MRC construct()
+        #{
+        #    return new ComboBox_MRC();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #newParameters
+        #/// <summary>
+        #///    Prepares the combo box for use.
+        #/// </summary>
+        #/// <param name="_formRun">
+        #///    The <c>FormRun</c> object, where the combo box is located.
+        #/// </param>
+        #/// <param name="_formControlName">
+        #///    The name of the combo box control.
+        #/// </param>
+        #/// <param name="_usedEnumValuesCon">
+        #///    A <c>container</c> parameter, filled with allowed enum values.
+        #///     -1 value means all possible value for enum, i.e. [-1] for UnknownNoYes is equivalent to [UnknownNoYes::Unknown, UnknownNoYes::No, UnknownNoYes::Yes].
+        #///     Any arbitrary string value, is possible, i.e. ["-All-", -1, "-Some-"] is equivalent to ["-All-", UnknownNoYes::Unknown, UnknownNoYes::No, UnknownNoYes::Yes, "Some..."]
+        #///     This value [UnknownNoYes::No, UnknownNoYes::Yes] or ["-All-", UnknownNoYes::No, UnknownNoYes::Yes] is also correct
+        #/// </param>
+        #/// <param name="_forbiddenValuesCon">
+        #///    A <c>container</c> parameter, filled with forbidden enum values.
+        #///     This parameter is useful with _usedEnumValuesCon == [-1], when one wants to exclude particular values.
+        #/// </param>
+        #/// <param name="_label">
+        #///    The label to use for the combo box.
+        #///     If empty, then label from control will be used.
+        #///     If empty, then label from enum will be used.
+        #/// </param>
+        #/// <param name="_helpText">
+        #///    The helptext to use for the combo box.
+        #///     If empty, then helptext from control will be used.
+        #///     If empty, then helptext from enum will be used.
+        #/// </param>
+        #/// <returns>
+        #///    <c>ComboBox_MRC</c> instance.
+        #/// </returns>
+        #/// <remarks>
+        #///    The method should be used before <c>super</c> call in the <c>init</c> method of the form.
+        #/// </remarks>
+        #public static ComboBox_MRC newParameters(
+        #    FormRun         _formRun,
+        #    FormControlName _formControlName,
+        #    container       _usedEnumValuesCon  = [-1], // -1 means all existing enum values
+        #    container       _forbiddenValuesCon = conNull(),
+        #    str             _label    = '',
+        #    str             _helpText = ''
+        #    )
+        #{
+        #    ComboBox_MRC        sysFormEnumComboBox = ComboBox_MRC::construct();
+        #    Object              comboBoxControl;
+        #    int                 comboBoxControlId;
+        #    EnumId              enumId;
+        #    ;
+        #
+        #    comboBoxControlId = _formRun.controlId(_formControlName);
+        #    if (comboBoxControlId == 0)
+        #    {
+        #        throw error(strFmt('Не найден контрол по имени %1', _formControlName));
+        #    }
+        #
+        #    comboBoxControl = _formRun.form().design().control(comboBoxControlId);
+        #
+        #    if (comboBoxControl.handle() != classNum(FormBuildComboBoxControl) &&
+        #        comboBoxControl.handle() != classNum(FormComboBoxControl))
+        #    {
+        #        throw error(strFmt('Неправильный тип переданного значения.'));
+        #    }
+        #
+        #    enumId            = comboBoxControl.enumType();
+        #
+        #    sysFormEnumComboBox.parmFormRun(_formRun);
+        #    sysFormEnumComboBox.parmComboBoxControlId(comboBoxControlId);
+        #    sysFormEnumComboBox.parmEnumId(enumId);
+        #    sysFormEnumComboBox.parmUsedEnumValuesCon(_usedEnumValuesCon);
+        #    sysFormEnumComboBox.parmForbiddenValuesCon(_forbiddenValuesCon);
+        #    sysFormEnumComboBox.parmLabel(_label);
+        #    sysFormEnumComboBox.parmHelpText(_helpText);
+        #    sysFormEnumComboBox.init();
+        #
+        #    return sysFormEnumComboBox;
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SysFormEnumComboBox выгружен
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SysFormEnumComboBox
+    PROPERTIES
+      Name                #SysFormEnumComboBox
+      Origin              #{2D133188-0000-1000-E367-897583F07A03}
+      LegacyId            #12680
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #init
+        #/// <summary>
+        #///    Builds a combo box based on which values of the enumeration are enabled.
+        #/// </summary>
+        #/// <remarks>
+        #///    The combo box is not assigned an enumeration and is built at runtime.
+        #/// </remarks>
+        #protected void init()
+        #{
+        #    #define.List(1)
+        #
+        #    FormComboBoxControl formComboBoxControl;
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 -->
+        #    //SetEnumerator       allowedEnumValueEnumerator;
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 <--
+        #    int                 comboBoxItemNumber;
+        #    int                 allowedEnumValue;
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 -->
+        #    int                 enumValCnt;
+        #    int                 enumValIdx;
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 <--
+        #    ;
+        #
+        #    sysDictEnum = new SysDictEnum(enumId);
+        #
+        #    formComboBoxControl = formRun.form().design().control(comboBoxControlId);
+        #    formComboBoxControl.enumType(0); // don't assign any enum type
+        #
+        #    if (label)
+        #    {
+        #        formComboBoxControl.label(label);
+        #    }
+        #    else
+        #    {
+        #        formComboBoxControl.label(sysDictEnum.label());
+        #    }
+        #
+        #    formComboBoxControl.helpText(sysDictEnum.help());
+        #    formComboBoxControl.comboType(#List);
+        #    formComboBoxControl.items(allowedEnumValuesSet.elements());
+        #
+        #    enumValue2ComboBoxItemMap = new Map(Types::Integer, Types::Integer);
+        #    comboBoxItemNumber = 1;
+        #
+        #    // JEV007114 "ГИИС ДМДК. Мониторинг документов с УИН для интеграции с ГИИС ДМДК", PKoz 17.08.2022 -->
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 -->
+        #    /*
+        #    allowedEnumValueEnumerator = allowedEnumValuesSet.getEnumerator();
+        #
+        #    while (allowedEnumValueEnumerator.moveNext())
+        #    {
+        #        allowedEnumValue = allowedEnumValueEnumerator.current();
+        #        formComboBoxControl.item(comboBoxItemNumber);
+        #        formComboBoxControl.text(sysDictEnum.value2Name(allowedEnumValue));
+        #        enumValue2ComboBoxItemMap.insert(allowedEnumValue, comboBoxItemNumber);
+        #        comboBoxItemNumber++;
+        #    }
+        #    */
+        #    enumValCnt = sysDictEnum.values();
+        #
+        #    for (enumValIdx = 0; enumValIdx <= enumValCnt - 1; enumValIdx++)
+        #    {
+        #        allowedEnumValue = sysDictEnum.index2Value(enumValIdx);
+        #
+        #        if (allowedEnumValuesSet.in(allowedEnumValue))
+        #        {
+        #            formComboBoxControl.item(comboBoxItemNumber);
+        #            formComboBoxControl.text(sysDictEnum.value2Name(allowedEnumValue));
+        #            enumValue2ComboBoxItemMap.insert(allowedEnumValue, comboBoxItemNumber);
+        #            comboBoxItemNumber++;
+        #        }
+        #    }
+        #    // JEV005245 "Доработать возможность создания заказов из запросов", shai 03.08.2020 <--
+        #    // JEV007114 "ГИИС ДМДК. Мониторинг документов с УИН для интеграции с ГИИС ДМДК", PKoz 17.08.2022 <--
+        #}
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: FRM
+
+; Microsoft Dynamics AX Forms unloaded
+; --------------------------------------------------------------------------------
+FRMVERSION 12
+
+FORM #tutorial_ComboBoxForm_MRC
+  PROPERTIES
+    Name                #tutorial_ComboBoxForm_MRC
+    Origin              #{408E4427-C9A4-4F04-97D4-0B743CB593DE}
+  ENDPROPERTIES
+  
+  METHODS
+    SOURCE #classDeclaration
+      #public class FormRun extends ObjectRun
+      #{
+      #    QueryBuildRange     qbr;
+      #
+      #    #define.All(    "--Все--")
+      #    #define.Complex("--Сложный--")
+      #    #define.Other(  "--Прочий--")
+      #
+      #    ComboBox_MRC    comboBoxClass1;
+      #    ComboBox_MRC    comboBoxClass2;
+      #    ComboBox_MRC    comboBoxClass3;
+      #    ComboBox_MRC    comboBoxClass4;
+      #    SysFormEnumComboBox     sysFormEnumComboBox; // пример 5
+      #}
+    ENDSOURCE
+    SOURCE #init
+      #public void init()
+      #{
+      #    Set     set;
+      #    ;
+      #
+      #    // Пример 1
+      #    comboBoxClass1 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl1),
+      #        [#All, #Complex, -1, #Other] // используемые значения
+      #        );
+      #
+      #    // Пример 2
+      #    comboBoxClass2 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl2),
+      #        [#All, #Complex, -1, #Other], // используемые значения
+      #        [InventJournalType::InventRemont, InventJournalType::Movement, InventJournalType::Transfer] // запрещенные значения
+      #        );
+      #
+      #    // Пример 3
+      #    comboBoxClass3 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl3),
+      #        [#All, #Complex, InventJournalType::InventRemont, InventJournalType::Movement, #Other] // используемые значения
+      #        );
+      #
+      #    // Пример 4
+      #    comboBoxClass4 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl4),
+      #        [InventJournalType::Count, InventJournalType::Movement, InventJournalType::Transfer, InventJournalType::LossProfit] // используемые значения
+      #        );
+      #
+      #    // Пример 5
+      #    set = new Set(Types::Integer);
+      #    set.add(InventJournalType::Count);
+      #    set.add(InventJournalType::Movement);
+      #    set.add(InventJournalType::Transfer);
+      #    set.add(InventJournalType::LossProfit);
+      #
+      #    sysFormEnumComboBox = SysFormEnumComboBox::newParameters(
+      #        element,
+      #        element.controlId(formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl5)),
+      #        enumNum(InventJournalType),
+      #        set
+      #        );
+      #
+      #    super();
+      #
+      #    // Пример 1
+      #    descriptionText1.text(
+      #@"Пример, когда используем в комбобоксе все значения енума, но к ним добавляем в начале и в конце какие-то свои строковые константы.
+      #X++ код:
+      #
+      #    #define.All(    '--Все--')
+      #    #define.Complex('--Сложный--')
+      #    #define.Other(  '--Прочий--')
+      #
+      #    comboBoxClass1 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl1),
+      #        [#All, #Complex, -1, #Other] // используемые значения
+      #        );");
+      #
+      #    // Пример 2
+      #    descriptionText2.text(
+      #@"Пример, когда используем в комбобоксе все значения енума, но к ним добавляем в начале и в конце какие-то свои строковые константы,
+      #а также запрещаем к показу значения InventJournalType::InventRemont, InventJournalType::Movement, InventJournalType::Transfer
+      #X++ код:
+      #
+      #    #define.All(    '--Все--')
+      #    #define.Complex('--Сложный--')
+      #    #define.Other(  '--Прочий--')
+      #
+      #    comboBoxClass2 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl2),
+      #        [#All, #Complex, -1, #Other], // используемые значения
+      #        [InventJournalType::InventRemont, InventJournalType::Movement, InventJournalType::Transfer] // запрещенные значения
+      #        );");
+      #
+      #    // Пример 3
+      #    descriptionText3.text(
+      #@"Пример, когда используем в комбобоксе определенные значения енума, но к ним добавляем в начале и в конце какие-то свои строковые константы.
+      #X++ код:
+      #
+      #    #define.All(    '--Все--')
+      #    #define.Complex('--Сложный--')
+      #    #define.Other(  '--Прочий--')
+      #
+      #    comboBoxClass3 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl3),
+      #        [#All, #Complex, InventJournalType::InventRemont, InventJournalType::Movement, #Other] // используемые значения
+      #        );");
+      #
+      #    // Пример 4
+      #    descriptionText4.text(
+      #@"Пример, когда используем в комбобоксе определенные значения енума (не все). В общем, все так же как при использовании стандартного класса SysFormEnumComboBox, только кода меньше писать и проще.
+      #X++ код:
+      #
+      #    comboBoxClass4 = ComboBox_MRC::newParameters(
+      #        element,
+      #        formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl4),
+      #        [InventJournalType::Count, InventJournalType::Movement, InventJournalType::Transfer, InventJournalType::LossProfit] // используемые значения
+      #        );");
+      #
+      #    // Пример 5
+      #    descriptionText5.text(
+      #@"Пример, аналогичный примеру 4, но используем стандартный класс SysFormEnumComboBox.
+      #X++ код:
+      #
+      #    set = new Set(Types::Integer);
+      #
+      #    set.add(InventJournalType::Count);
+      #    set.add(InventJournalType::Movement);
+      #    set.add(InventJournalType::Transfer);
+      #    set.add(InventJournalType::LossProfit);
+      #
+      #    sysFormEnumComboBox = SysFormEnumComboBox::newParameters(
+      #        element,
+      #        element.controlId(formControlStr(tutorial_ComboBoxForm_MRC, ComboBoxControl5)),
+      #        enumNum(InventJournalType),
+      #        set
+      #        );");
+      #}
+    ENDSOURCE
+  ENDMETHODS
+  OBJECTBANK
+    PROPERTIES
+    ENDPROPERTIES
+    
+    DATASOURCE
+      OBJECTPOOL
+        PROPERTIES
+          Name                #InventJournalTable
+          Table               #InventJournalTable
+          AllowEdit           #No
+          AllowCreate         #No
+          AllowDelete         #No
+          InsertIfEmpty       #No
+        ENDPROPERTIES
+        
+        FIELDLIST
+        ENDFIELDLIST
+      ENDOBJECTPOOL
+      METHODS
+        SOURCE #init
+          #public void init()
+          #{
+          #    super();
+          #
+          #    qbr = this.query().dataSourceTable(tableNum(InventJournalTable)).addRange(fieldNum(InventJournalTable, JournalType));
+          #}
+        ENDSOURCE
+      ENDMETHODS
+    ENDDATASOURCE
+  ENDOBJECTBANK
+  
+  REFERENCEDATASOURCES
+  ENDREFERENCEDATASOURCES
+  
+  JOINS
+  ENDJOINS
+  
+  PARTREFERENCES
+  ENDPARTREFERENCES
+  
+  DESIGN
+    PROPERTIES
+      Caption             #Работа с енумом
+    ENDPROPERTIES
+    
+    CONTAINER
+      CONTROL GRID
+        PROPERTIES
+          Name                #Grid
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1610612734
+          DataSource          #InventJournalTable
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TAB
+        PROPERTIES
+          Name                #Tab
+          Width               #Column width
+          Height              #Column height
+          ElementPosition     #1073741823
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tab1
+          ElementPosition     #715827882
+          HierarchyParent     #Tab
+          Caption             #Пример 1
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tab2
+          ElementPosition     #1073741823
+          HierarchyParent     #Tab
+          Caption             #Пример 2
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tab3
+          ElementPosition     #1431655764
+          HierarchyParent     #Tab
+          Caption             #Пример 3
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tab4
+          ElementPosition     #1789569705
+          HierarchyParent     #Tab
+          Caption             #Пример 4
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL TABPAGE
+        PROPERTIES
+          Name                #Tab5
+          ElementPosition     #1968526675
+          HierarchyParent     #Tab
+          Caption             #Пример 5
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBoxControl1
+          AutoDeclaration     #Yes
+          ElementPosition     #1431655764
+          HierarchyParent     #Tab1
+          EnumType            #InventJournalType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    str     text;
+            #    // str     valueStr, getEditText, getText, selectionStr;
+            #    // int     enumSelection;
+            #
+            #    boolean ret;
+            #    ;
+            #
+            #    ret = super();
+            #
+            #    // valueStr    = comboBoxControl1.valueStr(); // так работает
+            #    // getEditText = comboBoxControl1.getEditText(); // так тоже работает
+            #    // getText     = comboBoxControl1.getText(comboBoxControl1.selection()); // и так работает, но сложнее запоминать
+            #    // text        = comboBoxControl1.text(); // а так нифига не работает - всегда возвращает последнее положенное значение
+            #    // selectionStr = comboBoxClass1.selectionStr(); // тоже можно
+            #    // valueStr     = comboBoxClass1.valueStr(); // тоже можно
+            #
+            #    // enumSelection = comboBoxControl1.selection(); // неправильно - нельзя брать из контрола
+            #    // enumSelection = comboBoxClass1.selection(); // через класс нужно брать
+            #
+            #    text = this.valueStr();
+            #
+            #    switch (text)
+            #    {
+            #        case #All :
+            #            qbr.value(SysQuery::valueUnlimited());
+            #            break;
+            #
+            #        case #Complex:
+            #            qbr.value("1,2,3");
+            #            break;
+            #
+            #        case #Other:
+            #            qbr.value("!1");
+            #            break;
+            #
+            #        default :
+            #            qbr.value(queryValue(comboBoxClass1.selection())); // из контрола через вызов comboBoxControl1.selection() брать нельзя!
+            #            // только через класс comboBoxClass1.selection()
+            #    }
+            #
+            #    inventJournalTable_ds.executeQuery();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBoxControl2
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612733
+          HierarchyParent     #Tab2
+          EnumType            #InventJournalType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    str     text;
+            #
+            #    boolean ret;
+            #    ;
+            #
+            #    ret = super();
+            #
+            #    text = this.valueStr();
+            #
+            #    switch (text)
+            #    {
+            #        case #All :
+            #            qbr.value(SysQuery::valueUnlimited());
+            #            break;
+            #
+            #        case #Complex:
+            #            qbr.value("1,2,3");
+            #            break;
+            #
+            #        case #Other:
+            #            qbr.value("!1");
+            #            break;
+            #
+            #        default :
+            #            qbr.value(queryValue(comboBoxClass2.selection())); // из контрола через вызов comboBoxControl2.selection() брать нельзя!
+            #            // только через класс comboBoxClass2.selection()
+            #    }
+            #
+            #    inventJournalTable_ds.executeQuery();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBoxControl3
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612733
+          HierarchyParent     #Tab3
+          EnumType            #InventJournalType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    str     text;
+            #
+            #    boolean ret;
+            #    ;
+            #
+            #    ret = super();
+            #
+            #    text = this.valueStr();
+            #
+            #    switch (text)
+            #    {
+            #        case #All :
+            #            qbr.value(SysQuery::valueUnlimited());
+            #            break;
+            #
+            #        case #Complex:
+            #            qbr.value("1,2,3");
+            #            break;
+            #
+            #        case #Other:
+            #            qbr.value("!1");
+            #            break;
+            #
+            #        default :
+            #            qbr.value(queryValue(comboBoxClass3.selection())); // из контрола через вызов comboBoxControl3.selection() брать нельзя!
+            #            // только через класс comboBoxClass3.selection()
+            #    }
+            #
+            #    inventJournalTable_ds.executeQuery();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBoxControl4
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612733
+          HierarchyParent     #Tab4
+          EnumType            #InventJournalType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    str     text;
+            #
+            #    boolean ret;
+            #    ;
+            #
+            #    ret = super();
+            #
+            #    text = this.valueStr();
+            #
+            #    switch (text)
+            #    {
+            #        case #All :
+            #            qbr.value(SysQuery::valueUnlimited());
+            #            break;
+            #
+            #        case #Complex:
+            #            qbr.value("1,2,3");
+            #            break;
+            #
+            #        case #Other:
+            #            qbr.value("!1");
+            #            break;
+            #
+            #        default :
+            #            qbr.value(queryValue(comboBoxClass4.selection())); // из контрола через вызов comboBoxControl4.selection() брать нельзя!
+            #            // только через класс comboBoxClass4.selection()
+            #    }
+            #
+            #    inventJournalTable_ds.executeQuery();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #ComboBoxControl5
+          AutoDeclaration     #Yes
+          ElementPosition     #1610612733
+          HierarchyParent     #Tab5
+          EnumType            #InventJournalType
+        ENDPROPERTIES
+        
+        METHODS
+          SOURCE #modified
+            #public boolean modified()
+            #{
+            #    str     text;
+            #
+            #    boolean ret;
+            #    ;
+            #
+            #    ret = super();
+            #
+            #    text = this.valueStr();
+            #
+            #    switch (text)
+            #    {
+            #        case #All :
+            #            qbr.value(SysQuery::valueUnlimited());
+            #            break;
+            #
+            #        case #Complex:
+            #            qbr.value("1,2,3");
+            #            break;
+            #
+            #        case #Other:
+            #            qbr.value("!1");
+            #            break;
+            #
+            #        default :
+            #            qbr.value(queryValue(sysFormEnumComboBox.selection())); // из контрола через вызов comboBoxControl5.selection() брать нельзя!
+            #            // только через класс sysFormEnumComboBox.selection()
+            #    }
+            #
+            #    inventJournalTable_ds.executeQuery();
+            #
+            #    return ret;
+            #}
+          ENDSOURCE
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL COMBOBOX
+        PROPERTIES
+          Name                #InventJournalTable_JournalType
+          ElementPosition     #536870910
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #JournalType
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL INT64EDIT
+        PROPERTIES
+          Name                #InventJournalTable_RecId
+          ElementPosition     #1879048185
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #RecId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #DescriptionText1
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #954437176
+          HierarchyParent     #Tab1
+          Font                #Consolas
+          Bold                #Normal
+          DisplayHeight       #16
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #DescriptionText2
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #Tab2
+          Font                #Consolas
+          DisplayHeight       #16
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #DescriptionText3
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #Tab3
+          Font                #Consolas
+          DisplayHeight       #16
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #DescriptionText4
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #Tab4
+          Font                #Consolas
+          DisplayHeight       #16
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STATICTEXT
+        PROPERTIES
+          Name                #DescriptionText5
+          AutoDeclaration     #Yes
+          AllowEdit           #No
+          Width               #Column width
+          ElementPosition     #1073741822
+          HierarchyParent     #Tab5
+          Font                #Consolas
+          DisplayHeight       #16
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #InventJournalTable_Description
+          ElementPosition     #1342177275
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #Description
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #InventJournalTable_JournalId
+          ElementPosition     #805306365
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #JournalId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL STRINGEDIT
+        PROPERTIES
+          Name                #InventJournalTable_JournalNameId
+          ElementPosition     #1073741820
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #JournalNameId
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+      CONTROL UTCDATETIMEEDIT
+        PROPERTIES
+          Name                #InventJournalTable_createdDateTime
+          ElementPosition     #1610612730
+          HierarchyParent     #Grid
+          DataSource          #InventJournalTable
+          DataField           #createdDateTime
+        ENDPROPERTIES
+        
+        METHODS
+        ENDMETHODS
+      ENDCONTROL 
+      
+    ENDCONTAINER
+    
+  ENDDESIGN
+  
+  PERMISSIONS #Permissions
+    PROPERTIES
+    ENDPROPERTIES
+    
+    PERMISSIONSET #Read
+      PROPERTIES
+      ENDPROPERTIES
+      
+      FORM #Controls
+      ENDFORM
+      
+    TABLES #Tables
+    ENDTABLES
+    
+  SERVERMETHODS #Server Methods
+  ENDSERVERMETHODS
+  
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Update
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Create
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+PERMISSIONSET #Delete
+  PROPERTIES
+  ENDPROPERTIES
+  
+  FORM #Controls
+  ENDFORM
+  
+TABLES #Tables
+ENDTABLES
+
+SERVERMETHODS #Server Methods
+ENDSERVERMETHODS
+
+ASSOCIATEDFORMS #Associated Forms
+ENDASSOCIATEDFORMS
+
+ENDPERMISSIONSET
+
+ENDPERMISSIONS
+
+ENDFORM
+
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : tutorial_TunedCombobox unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #tutorial_TunedCombobox
+  SHARED
+  PROPERTIES
+    Name                #tutorial_TunedCombobox
+    Origin              #{409A7207-461B-4C58-99E9-52E8A13CCDDE}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 57019
+        NODETYPE 329
+        NAME #ComboBox_MRC
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Classes_Standart
+      PROPERTIES
+        Name                #Classes_Standart
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 18839
+        NODETYPE 329
+        NAME #DialogEnumComboBox
+      ENDNODE
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 12680
+        NODETYPE 329
+        NAME #SysFormEnumComboBox
+      ENDNODE
+      ENDGROUP
+      
+    GROUP #Forms
+      PROPERTIES
+        Name                #Forms
+        ProjectGroupType    #Forms
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 11
+        UTILOBJECTID 0
+        NODETYPE 201
+        NAME #tutorial_ComboBoxForm_MRC
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
